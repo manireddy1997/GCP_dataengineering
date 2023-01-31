@@ -2,12 +2,13 @@
 from google.cloud import bigquery
 
 def init(project):
-    client = bigquery.Client(Project=project)
+    client = bigquery.Client(project=project)
     return client
 
 def create_ds(project,ds_name,ds_location):
     bq_client = init(project=project)
-    dataset_id = bigquery.dataset(ds_name)
+    print(bq_client.project+'.'+ds_name)
+    dataset_id = bigquery.Dataset(bq_client.project+'.'+ds_name)
     dataset_id.location = ds_location
     dataset = bq_client.create_dataset(dataset_id)
     print("Created dataset {}.{}".format(bq_client.project, dataset.dataset_id))
@@ -47,16 +48,34 @@ def query(project,query_string):
 def list_datasets(project):
     bq_client = init(project=project)
     datasets = list(bq_client.list_datasets())
-    return datasets
+    ds_lst = []
+    for dataset in datasets:
+        ds_lst.append(dataset.dataset_id)
+    return ds_lst
 
 def list_tables(project,dataset):
     bq_client = init(project=project)
     if dataset in list_datasets(project):
         tables = list(bq_client.list_tables(dataset))
-        return tables
+        tbl_lst = []
+        for table in tables:
+            tbl_lst.append(table.table_id)
+        return tbl_lst
     else:
         print("Dataset Not found")
         return 1
-def delete_table(project,dataset,table):
-    pass
 
+def delete_table(project,dataset,table):
+    bq_client = init(project=project)
+    if dataset in list_datasets(project=project):
+        if table in list_tables(project=project,dataset=dataset):
+            table_id = project+'.'+dataset+'.'+table
+            bq_client.delete_table(table_id, not_found_ok=True)
+            print("table deleted")
+            return 0
+        else:
+            print("table not found")
+            return 1
+    else:
+        print("Dataset not found")
+        return 1
