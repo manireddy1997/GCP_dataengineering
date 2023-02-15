@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,request
 from google.cloud import firestore
 import os
 
@@ -6,13 +6,24 @@ app = Flask(__name__)
 
 @app.route('/get_data',methods=['GET'])
 def get_data():
-    db = firestore.Client(project='hakoona-matata-298704')
-    collection_ref =  db.collection(u'users')
+    db = firestore.Client(project=os.environ.get('project_id'))
+    collection_ref = db.collection(request.args.get('collection'))
     docs = collection_ref.stream()
     doc_list = []
     for doc in docs:
         doc_list.append(doc.id)
-    return str(doc_list[0])+"__"+"200"
+    return str(doc_list[0]) + "__" + "200"
+
+@app.route('/set_data',methods=['PUT','POST','GET'])
+def set_data(): #modify payload and doc_id as parameters based on your usecase
+    db = firestore.Client(project=os.environ.get('project_id'))
+    collection_ref =  db.collection(request.args.get('collection'))
+    #payload
+    payload = {"test":"ok"}
+    doc_id = 'docker_test'
+    doc_ref = collection_ref.document(doc_id)
+    doc_ref.set(payload)
+    return ("Operation Successful",200)
 
 @app.route("/ping")
 def ping():
