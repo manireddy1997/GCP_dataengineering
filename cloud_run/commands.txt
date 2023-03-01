@@ -1,0 +1,6 @@
+#Building a docker image through cloudshell
+
+docker build -t firestore --build-arg project_name=hakoona-matata-298704 .
+docker tag firestore us-docker.pkg.dev/hakoona-matata-298704/firestore/firestore
+docker push us-docker.pkg.dev/hakoona-matata-298704/firestore/firestore
+
